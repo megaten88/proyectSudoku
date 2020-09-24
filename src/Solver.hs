@@ -6,7 +6,7 @@ import qualified Data.Char
 import qualified Data.Function
 import qualified Data.List.Split
 import qualified Data.List
-import Interface
+import           Interface
 
 data Cell = Fixed Int | Possible [Int] deriving (Show, Eq)
 type Row  = [Cell]
@@ -121,14 +121,13 @@ solve grid = pruneGrid grid >>= solve'
           let (grid1, grid2) = nextGrids g
           in solve grid1 <|> solve grid2
 
-execute :: IO()
-execute = do
-    line <- getSudoku
+execute :: String -> String()
+execute line = do
     putStrLn line
     case readGrid line of
         Just grid -> case solve grid of
-            Nothing    -> putStrLn "No solution found"
-            Just grid' -> putStrLn $ showGrid grid'
+            Nothing    -> "No solution found"
+            Just grid' -> showGrid grid'
 
 --main :: IO ()
 --main = do

@@ -18,7 +18,9 @@ module Interface(
     , blankval
     , buildBoardSudokuUI
     , newGame
+    , checkAll
 ) where
+
 
 import           Control.Concurrent     (forkIO, threadDelay)
 import           Control.Exception
@@ -65,7 +67,7 @@ dataurl value = "https://kjell.haxx.se/sudoku/?visade=" ++ (show $ value) ++ "&s
 
 ---
 blankval :: Char
-blankval = ' '
+blankval = '.'
 
 boardsize :: Int
 boardsize = 9
@@ -116,7 +118,7 @@ getSudoku = do
     request <- parseRequest (dataurl 33)
     response <- httpLbs request manager
     let htmlParse = parseHtml $ unpack $ responseBody response
-    values <- runX $ htmlParse >>> css "inpuTextual.sgrid" ! "value"
+    values <- runX $ htmlParse >>> css "input.sgrid" ! "value"
     -- in the html the values are aranged block wise and not row wise
     let transposedValues = joinGroup . joinGroup . transpose . groupSize 3 . groupSize 9
                          . joinGroup . joinGroup . transpose . groupSize 3 . groupSize 3 $ values
@@ -223,32 +225,32 @@ cellsBindHandlers cells popover = mapM_ (\c -> do
         ) cells
     where focusInHandler c _ = do cellShowPopover c popover; pure False
 
--- -- | Checks and returns if a given cell contains the correct value.
--- --   If the value is not correct the cell gets visually marked.
--- checkCell :: Cell -> IO Bool
--- checkCell cell = do
---     solution <- Textual.head <$> (toWidget cell >>= #getName)
---     actual <- Textual.head <$> #getLabel cell
---     let isCorrect = actual == solution
---     style <- #getStyleContext cell
---     if not isCorrect
---         then #addClass style "incorrect"
---         else pure ()
---     forkIO $ threadDelay 800000 >> #removeClass style "incorrect"
---     pure isCorrect
+-- | Checks and returns if a given cell contains the correct value.
+--   If the value is not correct the cell gets visually marked.
+checkCell :: Cell -> IO Bool
+checkCell cell = do
+    solution <- Textual.head <$> (toWidget cell >>= #getName)
+    actual <- Textual.head <$> #getLabel cell
+    let isCorrect = actual == solution
+    style <- #getStyleContext cell
+    if not isCorrect
+        then #addClass style "incorrect"
+        else pure ()
+    forkIO $ threadDelay 800000 >> #removeClass style "incorrect"
+    pure isCorrect
 
--- -- | Checks if all given cells contain the correct value.
--- --   Visually marks the correct or incorrect cells.
--- checkAll :: Cells -> IO ()
--- checkAll cells = do
---     allAreCorrect <- and <$> mapM checkCell cells
---     if allAreCorrect
---         then mapM_ (\cell -> do
---             style <- #getStyleContext cell
---             #addClass style "correct"
---             forkIO $ threadDelay 800000 >> #removeClass style "correct"
---         ) cells
---         else pure ()
+-- | Checks if all given cells contain the correct value.
+--   Visually marks the correct or incorrect cells.
+checkAll :: Cells -> IO ()
+checkAll cells = do
+    allAreCorrect <- and <$> mapM checkCell cells
+    if allAreCorrect
+        then mapM_ (\cell -> do
+            style <- #getStyleContext cell
+            #addClass style "correct"
+            forkIO $ threadDelay 800000 >> #removeClass style "correct"
+        ) cells
+        else pure ()
 
 -- | Associates the popover to a given button and shows the popover.
 cellShowPopover :: Cell -> Popover -> IO ()
@@ -288,9 +290,9 @@ writeSudoku cells sudoku = do
 --         ) cells sudokuChars
 
 -- | Prepares a new game in the UI.
-newGame  :: Cells ->  IO ()
-newGame cells = 
-    sudoku <- getSudoku
+newGame  :: Cells -> IO(String) ->  IO ()
+newGame cells gameString = do
+    sudoku <- gameString
     -- let Just solution = head <$> solveSudoku sudoku
     writeSudoku cells sudoku
     -- writeSolution cells solution
