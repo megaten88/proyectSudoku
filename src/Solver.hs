@@ -6,7 +6,7 @@ import qualified Data.Char
 import qualified Data.Function
 import qualified Data.List.Split
 import qualified Data.List
-import           Interface
+import           Api
 
 data Cell = Fixed Int | Possible [Int] deriving (Show, Eq)
 type Row  = [Cell]

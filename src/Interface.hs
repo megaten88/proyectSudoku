@@ -10,7 +10,6 @@ module Interface(
     , clearButton
     , newButton
     , checkButton
-    , getSudoku
     , writePopoverRelativeCell
     , solvePopoverRelativeCell
     , cellsBindHandlers
@@ -38,6 +37,7 @@ import           Text.HandsomeSoup
 import           Text.Printf                (printf)
 import           Text.XML.HXT.Core
 import           Data.Maybe                 (fromMaybe)
+import           Solver (execute)
 
 -- Checks if there is already a number on the list
 checkDouble :: Eq x =>[x] -> Bool
@@ -225,12 +225,17 @@ cellsBindHandlers cells popover = mapM_ (\c -> do
         ) cells
     where focusInHandler c _ = do cellShowPopover c popover; pure False
 
+
+charToString :: Char -> String
+charToString c = [c]
 -- | Checks and returns if a given cell contains the correct value.
 --   If the value is not correct the cell gets visually marked.
 checkCell :: Cell -> IO Bool
 checkCell cell = do
     solution <- Textual.head <$> (toWidget cell >>= #getName)
+    --putStrLn $ charToString solution
     actual <- Textual.head <$> #getLabel cell
+    --putStrLn $ charToString actual
     let isCorrect = actual == solution
     style <- #getStyleContext cell
     if not isCorrect
@@ -241,8 +246,10 @@ checkCell cell = do
 
 -- | Checks if all given cells contain the correct value.
 --   Visually marks the correct or incorrect cells.
-checkAll :: Cells -> IO ()
-checkAll cells = do
+checkAll :: Cells -> IO(String) -> IO ()
+checkAll cells sud = do
+    sudoku <- sud
+    putStrLn  sudoku 
     allAreCorrect <- and <$> mapM checkCell cells
     if allAreCorrect
         then mapM_ (\cell -> do
@@ -293,6 +300,7 @@ writeSudoku cells sudoku = do
 newGame  :: Cells -> IO(String) ->  IO ()
 newGame cells gameString = do
     sudoku <- gameString
+    putStrLn sudoku
     -- let Just solution = head <$> solveSudoku sudoku
     writeSudoku cells sudoku
     -- writeSolution cells solution

@@ -35,6 +35,7 @@ library
   exposed-modules:
       Interface
     , Solver
+    , Api
   other-modules:
       Paths_sudoku
   hs-source-dirs:
