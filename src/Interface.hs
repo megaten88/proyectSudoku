@@ -37,8 +37,8 @@ import           Text.XML.HXT.Core
 import           Data.Maybe                 (fromMaybe)
 import           Solver (execute)
 
-blankval :: Char
-blankval = '.'
+defaultValue :: Char
+defaultValue = '.'
 
 boardsize :: Int
 boardsize = 9
@@ -54,7 +54,7 @@ cellvals = "123456789"
 -- | True iff from a given string a sudoku can be created.
 validate :: String -> Bool
 validate s = (length s == (boardsize * boardsize)) &&
-          (all (`elem` blankval:cellvals) s)
+          (all (`elem` defaultValue:cellvals) s)
 
 -- | Creates a sudoku from a validate string.
 createString :: String -> Maybe BoardSudoku
@@ -239,7 +239,7 @@ writeSudoku cells sudoku = do
     let sudokuChars = sudoku
     sequence_ $ zipWith (\c sc -> do
             writeCell c sc
-            if sc == blankval
+            if sc == defaultValue
                 then c `set` [#sensitive := True]
                 else c `set` [#sensitive := False]
         ) cells sudokuChars

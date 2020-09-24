@@ -1,5 +1,5 @@
 module Api(
-    blankval
+    defaultValue
     , groupSize
     , getSudoku
 ) where
@@ -16,8 +16,8 @@ import           Text.XML.HXT.Core
 joinGroup :: [[b]] -> [b]
 joinGroup = concat
 
-blankval :: Char
-blankval = '.'
+defaultValue :: Char
+defaultValue = '.'
 
 -- Get random sudoku board
 dataurl :: Int ->  String
@@ -41,6 +41,6 @@ getSudoku s b =  do
         -- in the html the values are aranged block wise and not row wise
         let transposedValues = joinGroup . joinGroup . transpose . groupSize 3 . groupSize 9
                             . joinGroup . joinGroup . transpose . groupSize 3 . groupSize 3 $ values
-        let sudokuString = concat $ map (\v -> if v == "" then blankval:"" else v) transposedValues
+        let sudokuString = concat $ map (\v -> if v == "" then defaultValue:"" else v) transposedValues
         pure (sudokuString)
 
