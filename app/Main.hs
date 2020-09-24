@@ -1,4 +1,6 @@
 module Main where
+import           Solver
+import           Api
 import           Interface
 import           Data.GI.Base
 import qualified GI.Gtk        as Gtk
@@ -11,8 +13,13 @@ import qualified GI.Gtk        as Gtk
 main :: IO ()
 main = do
     --- For some reason if it is not called before init, it doesn't work 
-        let func = getSudoku
-        --putStr $ execute man
+       
+        func  <- getSudoku "func" False
+        func1  <- getSudoku func True
+        putStr $ execute func
+        putStrLn ""
+        putStr $ execute func1 
+        
         Gtk.init Nothing
         ui <-  buildBoardSudokuUI
         cellsBindHandlers (cells ui) (popover ui)

@@ -1,6 +1,5 @@
 module Interface(
-    getSudoku
-    , BoardSudoku
+    BoardSudoku
     , BuilderCastException(..)
     , BoardSudokuUI
     , window
@@ -14,7 +13,6 @@ module Interface(
     , solvePopoverRelativeCell
     , cellsBindHandlers
     , numbersBindHandlers
-    , blankval
     , buildBoardSudokuUI
     , newGame
     , checkAll
@@ -39,33 +37,6 @@ import           Text.XML.HXT.Core
 import           Data.Maybe                 (fromMaybe)
 import           Solver (execute)
 
--- Checks if there is already a number on the list
-checkDouble :: Eq x =>[x] -> Bool
-checkDouble [] = True
-checkDouble(head:tail) = head `notElem` tail && checkDouble tail
-
---- Checking if the list has only one element
-hasOnlyOne:: [x] -> Bool
-hasOnlyOne [x] = True
-hasOnlyOne _ = False
-
---- Group a tail list by defined size
-groupSize :: Int -> [x] ->[[x]]
-groupSize size [] = []
-groupSize size tail = (take size tail) : groupSize size (drop size tail)
-
--- Used for joining groups or concatenate them
-joinGroup :: [[b]] -> [b]
-joinGroup = concat
-
-delete :: Eq a => [a] -> [a] -> [a]
-delete = flip (\\)
-
--- Get random sudoku board
-dataurl :: Int ->  String
-dataurl value = "https://kjell.haxx.se/sudoku/?visade=" ++ (show $ value) ++ "&seed=%28random+seed%29&action=Create+a+field&hardchange=0"
-
----
 blankval :: Char
 blankval = '.'
 
@@ -110,22 +81,6 @@ newtype BoardSudoku = BoardSudoku String
 
 fromString :: [Char] -> String
 fromString [c] = [c]
-
-
-getSudoku :: IO (String)
-getSudoku = do
-    manager <- newManager tlsManagerSettings
-    request <- parseRequest (dataurl 33)
-    response <- httpLbs request manager
-    let htmlParse = parseHtml $ unpack $ responseBody response
-    values <- runX $ htmlParse >>> css "input.sgrid" ! "value"
-    -- in the html the values are aranged block wise and not row wise
-    let transposedValues = joinGroup . joinGroup . transpose . groupSize 3 . groupSize 9
-                         . joinGroup . joinGroup . transpose . groupSize 3 . groupSize 3 $ values
-    let sudokuString = concat $ map (\v -> if v == "" then blankval:"" else v) transposedValues
-    pure (sudokuString)
-
-
 
 ------------- BUILDING THE UI 
 data BoardSudokuUI = BoardSudokuUI { window        :: Window
@@ -232,11 +187,12 @@ charToString c = [c]
 --   If the value is not correct the cell gets visually marked.
 checkCell :: Cell -> IO Bool
 checkCell cell = do
-    solution <- Textual.head <$> (toWidget cell >>= #getName)
+    putStrLn solution
+    getSolution <- Textual.head <$> (toWidget cell >>= #getName)
     --putStrLn $ charToString solution
     actual <- Textual.head <$> #getLabel cell
     --putStrLn $ charToString actual
-    let isCorrect = actual == solution
+    let isCorrect = actual == getSolution
     style <- #getStyleContext cell
     if not isCorrect
         then #addClass style "incorrect"
@@ -297,10 +253,11 @@ writeSudoku cells sudoku = do
 --         ) cells sudokuChars
 
 -- | Prepares a new game in the UI.
+solution ::String
+solution = ""
+
 newGame  :: Cells -> IO(String) ->  IO ()
 newGame cells gameString = do
     sudoku <- gameString
-    putStrLn sudoku
-    -- let Just solution = head <$> solveSudoku sudoku
     writeSudoku cells sudoku
     -- writeSolution cells solution

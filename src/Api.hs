@@ -1,4 +1,8 @@
-module Api where
+module Api(
+    blankval
+    , groupSize
+    , getSudoku
+) where
 
 import           Data.ByteString.Lazy.Char8 (unpack)
 import           Data.List                  (elemIndex, transpose)
@@ -24,15 +28,19 @@ groupSize :: Int -> [x] ->[[x]]
 groupSize size [] = []
 groupSize size tail = (take size tail) : groupSize size (drop size tail)
 
-getSudoku :: IO (String)
-getSudoku = do
-    manager <- newManager tlsManagerSettings
-    request <- parseRequest (dataurl 33)
-    response <- httpLbs request manager
-    let htmlParse = parseHtml $ unpack $ responseBody response
-    values <- runX $ htmlParse >>> css "input.sgrid" ! "value"
-    -- in the html the values are aranged block wise and not row wise
-    let transposedValues = joinGroup . joinGroup . transpose . groupSize 3 . groupSize 9
-                         . joinGroup . joinGroup . transpose . groupSize 3 . groupSize 3 $ values
-    let sudokuString = concat $ map (\v -> if v == "" then blankval:"" else v) transposedValues
-    pure (sudokuString)
+getSudoku :: String-> Bool->IO (String)
+getSudoku s b =  do
+    if b==True
+        then pure(s)
+    else do
+        manager <- newManager tlsManagerSettings
+        request <- parseRequest (dataurl 33)
+        response <- httpLbs request manager
+        let htmlParse = parseHtml $ unpack $ responseBody response
+        values <- runX $ htmlParse >>> css "input.sgrid" ! "value"
+        -- in the html the values are aranged block wise and not row wise
+        let transposedValues = joinGroup . joinGroup . transpose . groupSize 3 . groupSize 9
+                            . joinGroup . joinGroup . transpose . groupSize 3 . groupSize 3 $ values
+        let sudokuString = concat $ map (\v -> if v == "" then blankval:"" else v) transposedValues
+        pure (sudokuString)
+
