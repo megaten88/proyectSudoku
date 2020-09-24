@@ -1,0 +1,74 @@
+name:                sudoku
+version:             0.1.0.0
+github:              "https://github.com/megaten88/proyectSudoku"
+license:             BSD3
+author:              "Author name here"
+maintainer:          "example@example.com"
+copyright:           "2020 Author name here"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal fil- it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/megaten88/proyectSudoku#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+-  text >=1.2 && <1.3
+-  bytestring>=0.10 && <0.11
+-  http-client>=0.5 && <0.6
+-  http-client-tls>= 0.3 && <0.4
+-  HandsomeSoup>=0.4 && <0.5
+-  hxt>=9.3 && <9.4
+-  haskell-gi-base>=0.20 && <0.21
+-  gi-gtk>=3.0 && <3.1
+
+library:
+  source-dirs: src
+
+executables:
+  sudoku-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - base >= 4.7 && < 5
+    -  text >=1.2 && <1.3
+    -  bytestring>=0.10 && <0.11
+    -  http-client>=0.5 && <0.6
+    -  http-client-tls>= 0.3 && <0.4
+    -  HandsomeSoup>=0.4 && <0.5
+    -  hxt>=9.3 && <9.4
+    -  haskell-gi-base>=0.20 && <0.21
+    -  gi-gtk>=3.0 && <3.1
+    - sudoku
+
+tests:
+  sudoku-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - base >= 4.7 && < 5
+    -  text >=1.2 && <1.3
+    -  bytestring>=0.10 && <0.11
+    -  http-client>=0.5 && <0.6
+    -  http-client-tls>= 0.3 && <0.4
+    -  HandsomeSoup>=0.4 && <0.5
+    -  hxt>=9.3 && <9.4
+    -  haskell-gi-base>=0.20 && <0.21
+    -  gi-gtk>=3.0 && <3.1
+    - sudoku
