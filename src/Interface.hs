@@ -19,6 +19,7 @@ import           Data.ByteString.Lazy.Char8 (unpack)
 import           Text.HandsomeSoup
 import           Text.Printf                (printf)
 import           Text.XML.HXT.Core
+import           Data.Maybe                 (fromMaybe)
 
 -- Checks if there is already a number on the list
 checkDouble :: Eq x =>[x] -> Bool
@@ -77,6 +78,8 @@ toString :: BoardSudoku -> String
 toString (BoardSudoku s) = s
 
 
+
+
 data BuilderCastException = UnknownIdException String deriving (Show, Typeable)
 
 instance Exception BuilderCastException
@@ -87,9 +90,11 @@ type Cells = [Cell]
 
 newtype BoardSudoku = BoardSudoku String
 
+fromString :: [Char] -> String
+fromString [c] = [c]
 
-getSudoku :: IO (Maybe BoardSudoku)
 
+getSudoku :: IO (String)
 getSudoku = do
     manager <- newManager tlsManagerSettings
     request <- parseRequest (dataurl 33)
@@ -100,7 +105,4 @@ getSudoku = do
     let transposedValues = joinGroup . joinGroup . transpose . groupSize 3 . groupSize 9
                          . joinGroup . joinGroup . transpose . groupSize 3 . groupSize 3 $ values
     let sudokuString = concat $ map (\v -> if v == "" then blankval:"" else v) transposedValues
-    putStrLn sudokuString
-    pure (createString sudokuString)
-
-
+    pure (sudokuString)

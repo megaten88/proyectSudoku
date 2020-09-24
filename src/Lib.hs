@@ -3,6 +3,7 @@ module Lib
     ) where
 
 import Interface
+import Solver
 
-someFunc :: IO (Maybe BoardSudoku)
-someFunc = getSudoku
+someFunc :: IO ()
+someFunc = execute
