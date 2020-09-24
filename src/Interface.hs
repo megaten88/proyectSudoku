@@ -62,14 +62,14 @@ cellvals :: [Char]
 cellvals = "123456789"
 
 -- | True iff from a given string a sudoku can be created.
-valid :: String -> Bool
-valid s = (length s == (boardsize * boardsize)) &&
+validate :: String -> Bool
+validate s = (length s == (boardsize * boardsize)) &&
           (all (`elem` blankval:cellvals) s)
 
--- | Creates a sudoku from a valid string.
-fromString :: String -> Maybe BoardSudoku
-fromString s
-    | valid s   = Just $ BoardSudoku s
+-- | Creates a sudoku from a validate string.
+createString :: String -> Maybe BoardSudoku
+createString s
+    | validate s   = Just $ BoardSudoku s
     | otherwise = Nothing
 
 -- | Returns the string representation of a BoardSudoku.
@@ -101,6 +101,6 @@ getSudoku = do
                          . joinGroup . joinGroup . transpose . groupSize 3 . groupSize 3 $ values
     let sudokuString = concat $ map (\v -> if v == "" then blankval:"" else v) transposedValues
     putStrLn sudokuString
-    pure (fromString sudokuString)
+    pure (createString sudokuString)
 
 
