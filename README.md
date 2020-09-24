@@ -23,5 +23,8 @@ cabal install http-client
 cabal install http-conduit
 cabal install alex happy
 cabal install hxt
+cabal install HandsomeSoup
+cabal install haskell-gi-base-0.23.0
+cabal install gi-gtk-3.0.32
 ```
 
