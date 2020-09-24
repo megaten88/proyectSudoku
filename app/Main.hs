@@ -16,7 +16,7 @@ main = do
     cellsBindHandlers (cells ui) (popover ui)
     numbersBindHandlers (numberButtons ui) (popover ui)
     on (clearButton ui) #clicked $ writePopoverRelativeCell (popover ui) $ blankval
-    on (newButton ui) #clicked $ newGame (cells)
+    on (newButton ui) #clicked $ newGame cells ui
    -- on (checkButton ui) #clicked $ checkAll (cells ui)
     #showAll (window ui)
     Gtk.main

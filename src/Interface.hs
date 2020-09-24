@@ -35,6 +35,7 @@ import           Data.ByteString.Lazy.Char8 (unpack)
 import           Text.HandsomeSoup
 import           Text.Printf                (printf)
 import           Text.XML.HXT.Core
+import           Data.Maybe                 (fromMaybe)
 
 -- Checks if there is already a number on the list
 checkDouble :: Eq x =>[x] -> Bool
@@ -93,6 +94,8 @@ toString :: BoardSudoku -> String
 toString (BoardSudoku s) = s
 
 
+
+
 data BuilderCastException = UnknownIdException String deriving (Show, Typeable)
 
 instance Exception BuilderCastException
@@ -103,8 +106,11 @@ type Cells = [Cell]
 
 newtype BoardSudoku = BoardSudoku String
 
+fromString :: [Char] -> String
+fromString [c] = [c]
 
-getSudoku :: IO (Maybe BoardSudoku)
+
+getSudoku :: IO (String)
 getSudoku = do
     manager <- newManager tlsManagerSettings
     request <- parseRequest (dataurl 33)
@@ -115,8 +121,7 @@ getSudoku = do
     let transposedValues = joinGroup . joinGroup . transpose . groupSize 3 . groupSize 9
                          . joinGroup . joinGroup . transpose . groupSize 3 . groupSize 3 $ values
     let sudokuString = concat $ map (\v -> if v == "" then blankval:"" else v) transposedValues
-
-    pure (createString sudokuString)
+    pure (sudokuString)
 
 
 
@@ -264,9 +269,9 @@ numberButtonInsert button popover = do
     writePopoverRelativeCell popover $ Textual.head label
 
 -- | Writes a sudoku into a list of buttons.
-writeSudoku :: Cells -> Maybe BoardSudoku-> IO ()
+writeSudoku :: Cells -> String -> IO ()
 writeSudoku cells sudoku = do
-    let sudokuChars = toString sudoku
+    let sudokuChars = sudoku
     sequence_ $ zipWith (\c sc -> do
             writeCell c sc
             if sc == blankval
@@ -284,8 +289,8 @@ writeSudoku cells sudoku = do
 
 -- | Prepares a new game in the UI.
 newGame  :: Cells ->  IO ()
-newGame cells = do
-    Just sudoku <- getSudoku
+newGame cells = 
+    sudoku <- getSudoku
     -- let Just solution = head <$> solveSudoku sudoku
     writeSudoku cells sudoku
     -- writeSolution cells solution
