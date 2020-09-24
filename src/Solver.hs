@@ -121,9 +121,8 @@ solve grid = pruneGrid grid >>= solve'
           let (grid1, grid2) = nextGrids g
           in solve grid1 <|> solve grid2
 
-execute :: String -> String()
+execute :: String -> String
 execute line = do
-    putStrLn line
     case readGrid line of
         Just grid -> case solve grid of
             Nothing    -> "No solution found"
