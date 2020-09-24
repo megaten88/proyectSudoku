@@ -5,4 +5,4 @@ module Lib
 import Interface
 
 someFunc :: IO (Maybe BoardSudoku)
-someFunc = loadSudoku
+someFunc = getSudoku

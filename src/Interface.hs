@@ -1,5 +1,5 @@
 module Interface(
-    loadSudoku
+    getSudoku
     , BoardSudoku
 ) where
 
@@ -88,14 +88,14 @@ type Cells = [Cell]
 newtype BoardSudoku = BoardSudoku String
 
 
-loadSudoku :: IO (Maybe BoardSudoku)
+getSudoku :: IO (Maybe BoardSudoku)
 
-loadSudoku = do
+getSudoku = do
     manager <- newManager tlsManagerSettings
     request <- parseRequest (dataurl 33)
     response <- httpLbs request manager
-    let doc = parseHtml $ unpack $ responseBody response
-    values <- runX $ doc >>> css "input.sgrid" ! "value"
+    let htmlParse = parseHtml $ unpack $ responseBody response
+    values <- runX $ htmlParse >>> css "input.sgrid" ! "value"
     -- in the html the values are aranged block wise and not row wise
     let transposedValues = joinGroup . joinGroup . transpose . groupSize 3 . groupSize 9
                          . joinGroup . joinGroup . transpose . groupSize 3 . groupSize 3 $ values
