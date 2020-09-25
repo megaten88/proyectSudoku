@@ -2589,7 +2589,7 @@
                 <property name="column_homogeneous">True</property>
                 <child>
                   <object class="GtkButton" id="newButton">
-                    <property name="label" translatable="yes">New</property>
+                    <property name="label" translatable="yes">Nuevo</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
@@ -2601,7 +2601,7 @@
                 </child>
                 <child>
                   <object class="GtkButton" id="checkButton">
-                    <property name="label" translatable="yes">Check</property>
+                    <property name="label" translatable="yes">Comprobar</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
