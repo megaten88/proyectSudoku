@@ -10,30 +10,51 @@ module Interface(
     , newButton
     , checkButton
     , writePopoverRelativeCell
-    , solvePopoverRelativeCell
     , cellsBindHandlers
     , numbersBindHandlers
     , buildBoardSudokuUI
     , newGame
-    , checkAll
+    , checkBoard
 ) where
 
 
 import           Control.Concurrent     (forkIO, threadDelay)
-import           Control.Exception
-import           Control.Monad.IO.Class
-import           Data.GI.Base
+import Control.Exception ( Exception, throw )
+import Control.Monad.IO.Class ( MonadIO(..) )
+import Data.GI.Base
+    ( set, unsafeCastTo, on, AttrOp((:=)), GObject, ManagedPtr )
 import qualified Data.Text              as Textual
-import           Data.Typeable
-import           GI.Gtk
-import           Paths_sudoku
+import Data.Typeable ( Typeable )
+import GI.Gtk
+    ( set,
+      unsafeCastTo,
+      on,
+      AttrOp((:=)),
+      GObject,
+      ManagedPtr,
+      mainQuit,
+      builderGetObject,
+      builderNewFromFile,
+      cssProviderLoadFromPath,
+      cssProviderNew,
+      styleContextAddProviderForScreen,
+      toWidget,
+      windowGetScreen,
+      Builder,
+      IsBuilder,
+      Button(..),
+      CssProvider(CssProvider),
+      Popover(..),
+      IsWindow,
+      Window(..) )
+import           Paths_sudoku ( getDataFileName )
 import           Data.List ((\\),transpose, elemIndex) 
 import           Network.HTTP.Client( Response(responseBody), httpLbs, newManager, parseRequest)
 import           Network.HTTP.Client.TLS ( tlsManagerSettings )
 import           Data.ByteString.Lazy.Char8 (unpack)
-import           Text.HandsomeSoup
+import           Text.HandsomeSoup ()
 import           Text.Printf                (printf)
-import           Text.XML.HXT.Core
+import           Text.XML.HXT.Core ()
 import           Data.Maybe                 (fromMaybe)
 import           Solver (execute)
 
@@ -48,15 +69,15 @@ boxsize :: Int
 boxsize = 3
 
 -- | The symbols which can be inserted into sudokus.
-cellvals :: [Char]
-cellvals = "123456789"
+valuesCells :: [Char]
+valuesCells = "123456789"
 
--- | True iff from a given string a sudoku can be created.
+-- | True iff from a given string a game can be created.
 validate :: String -> Bool
 validate s = (length s == (boardsize * boardsize)) &&
-          (all (`elem` defaultValue:cellvals) s)
+          (all (`elem` defaultValue:valuesCells) s)
 
--- | Creates a sudoku from a validate string.
+-- | Creates a game from a validate string.
 createString :: String -> Maybe BoardSudoku
 createString s
     | validate s   = Just $ BoardSudoku s
@@ -103,7 +124,7 @@ buildBoardSudokuUI = do
     checkButton       <- builderGetTyped builder "checkButton" Button
     pure $ BoardSudokuUI window cells popover numberButtons clearButton newButton checkButton
 
--- | The ids of the sudoku cells in the ui file.
+-- | The ids of the game cells in the ui file.
 cellNames :: [Textual.Text]
 cellNames = map (Textual.pack . (++) "cell") $ map show [1..81]
 
@@ -144,7 +165,7 @@ windowAddCss window path = liftIO $ do
     cssProviderLoadFromPath cssProvider path
     styleContextAddProviderForScreen screen cssProvider 1000
 
--- | Writes a character into a sudoku cell.
+-- | Writes a character into a game cell.
 writeCell :: Cell -> Char -> IO ()
 writeCell cell char = #setLabel cell (Textual.singleton char)
 
@@ -157,22 +178,6 @@ writePopoverRelativeCell popover char = do
     writeCell cell char
     #hide popover
 
--- -- | Solves a given cell.
--- solveCell :: Cell -> IO ()
--- solveCell cell = do
---     char <- Textual.head <$> #getName cell
---     writeCell cell char
-
--- -- | Solves all given cells.
--- solveAll :: Cells -> IO ()
--- solveAll = mapM_ solveCell
-
--- -- | Solves the cell currently relative to the popover.
-solvePopoverRelativeCell :: Popover -> IO ()
-solvePopoverRelativeCell popover = do
-    cell <- #getRelativeTo popover >>= unsafeCastTo Button
-    #hide popover
-
 -- | Binds the signal handlers to buttons.
 cellsBindHandlers :: Cells -> Popover -> IO ()
 cellsBindHandlers cells popover = mapM_ (\c -> do
@@ -183,30 +188,29 @@ cellsBindHandlers cells popover = mapM_ (\c -> do
 
 charToString :: Char -> String
 charToString c = [c]
+
+
 -- | Checks and returns if a given cell contains the correct value.
 --   If the value is not correct the cell gets visually marked.
-checkCell :: Cell -> IO Bool
-checkCell cell = do
-    putStrLn solution
+checkByCell :: Cell -> IO Bool
+checkByCell cell = do
     getSolution <- Textual.head <$> (toWidget cell >>= #getName)
-    --putStrLn $ charToString solution
+    -- putStrLn $ "Solution = " ++ (charToString getSolution)
     actual <- Textual.head <$> #getLabel cell
     --putStrLn $ charToString actual
     let isCorrect = actual == getSolution
     style <- #getStyleContext cell
     if not isCorrect
         then #addClass style "incorrect"
-        else pure ()
+        else #addClass style "correct"
     forkIO $ threadDelay 800000 >> #removeClass style "incorrect"
     pure isCorrect
 
 -- | Checks if all given cells contain the correct value.
 --   Visually marks the correct or incorrect cells.
-checkAll :: Cells -> IO(String) -> IO ()
-checkAll cells sud = do
-    sudoku <- sud
-    putStrLn  sudoku 
-    allAreCorrect <- and <$> mapM checkCell cells
+checkBoard :: Cells -> IO ()
+checkBoard cells = do
+    allAreCorrect <- and <$> mapM checkByCell cells
     if allAreCorrect
         then mapM_ (\cell -> do
             style <- #getStyleContext cell
@@ -233,10 +237,10 @@ numberButtonInsert button popover = do
     label <- #getLabel button
     writePopoverRelativeCell popover $ Textual.head label
 
--- | Writes a sudoku into a list of buttons.
+-- | Writes a game into a list of buttons.
 writeSudoku :: Cells -> String -> IO ()
-writeSudoku cells sudoku = do
-    let sudokuChars = sudoku
+writeSudoku cells game = do
+    let sudokuChars = game
     sequence_ $ zipWith (\c sc -> do
             writeCell c sc
             if sc == defaultValue
@@ -245,19 +249,19 @@ writeSudoku cells sudoku = do
         ) cells sudokuChars
 
 -- | Stores a given solution in the names of the passed cells.
--- writeSolution :: Cells -> Sudoku -> IO ()
--- writeSolution cells sudoku = do
---     let sudokuChars = toString sudoku
---     sequence_ $ zipWith (\c sc -> do
---             #setName c (Textual.singleton sc)
---         ) cells sudokuChars
+writeSolution :: Cells -> String -> IO ()
+writeSolution cells game = do
+    let sudokuChars = game
+    sequence_ $ zipWith (\c sc -> do
+            #setName c (Textual.singleton sc)
+        ) cells sudokuChars
 
 -- | Prepares a new game in the UI.
-solution ::String
-solution = ""
-
 newGame  :: Cells -> IO(String) ->  IO ()
 newGame cells gameString = do
-    sudoku <- gameString
-    writeSudoku cells sudoku
-    -- writeSolution cells solution
+    game <- gameString
+    let solve = execute game
+    putStrLn solve
+    let solveString = (filter (/= ' ') solve)
+    writeSudoku cells game
+    writeSolution cells (filter (/= '\n') solveString)

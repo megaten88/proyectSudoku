@@ -12,20 +12,13 @@ import qualified GI.Gtk        as Gtk
 
 main :: IO ()
 main = do
-    --- For some reason if it is not called before init, it doesn't work 
-       
-        func  <- getSudoku "func" False
-        func1  <- getSudoku func True
-        putStr $ execute func
-        putStrLn ""
-        putStr $ execute func1 
-        
+    --- For some reason if it is not called before init, it doesn't work         
         Gtk.init Nothing
         ui <-  buildBoardSudokuUI
         cellsBindHandlers (cells ui) (popover ui)
         numbersBindHandlers (numberButtons ui) (popover ui)
-        on (clearButton ui) #clicked $ writePopoverRelativeCell (popover ui) $ blankval
-        on (newButton ui) #clicked $ newGame (cells ui) (func)
-        on (checkButton ui) #clicked $ checkAll (cells ui) (func)
+        on (clearButton ui) #clicked $ writePopoverRelativeCell (popover ui) $ defaultValue
+        on (newButton ui) #clicked $ newGame (cells ui) (getSudoku "func" False)
+        on (checkButton ui) #clicked $ checkBoard (cells ui) 
         #showAll (window ui)
         Gtk.main

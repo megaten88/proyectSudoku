@@ -1,6 +1,6 @@
 
-#mainWindow {
-    background: #ECF0F1;
+#main{
+    background: #489aaf;
 }
 
 #container {
@@ -8,7 +8,7 @@
 }
 
 #mainGrid {
-    border: 2px solid #999;
+    border: 2px solid rgb(158, 106, 200);
 }
 
 #mainGrid > grid:nth-child(2n+1) {
@@ -19,7 +19,7 @@
 #mainGrid > grid:nth-child(5),
 #mainGrid > grid:nth-child(6) {
     border-style: solid;
-    border-color: #999;
+    border-color: rgb(158, 106, 200);
     border-left-width: 2px;
     border-right-width: 2px;
 }
@@ -29,7 +29,7 @@
 #mainGrid > grid:nth-child(5),
 #mainGrid > grid:nth-child(8) {
     border-style: solid;
-    border-color: #999;
+    border-color: rgb(158, 106, 200);
     border-top-width: 2px;
     border-bottom-width: 2px;
 }
@@ -38,7 +38,7 @@
 #mainGrid > grid > *:nth-child(5) ,
 #mainGrid > grid > *:nth-child(6) {
     border-style: solid;
-    border-color: #bbb;
+    border-color: rgb(77, 204, 226);
     border-left-width: 1px;
     border-right-width: 1px;
 }
@@ -47,7 +47,7 @@
 #mainGrid > grid > *:nth-child(5),
 #mainGrid > grid > *:nth-child(8) {
     border-style: solid;
-    border-color: #bbb;
+    border-color: rgb(77, 204, 226);
     border-top-width: 1px;
     border-bottom-width: 1px;
 }

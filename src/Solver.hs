@@ -120,20 +120,10 @@ solve grid = pruneGrid grid >>= solve'
       | otherwise       =
           let (grid1, grid2) = nextGrids g
           in solve grid1 <|> solve grid2
-
+-- execute the solver 
 execute :: String -> String
 execute line = do
     case readGrid line of
         Just grid -> case solve grid of
             Nothing    -> "No solution found"
             Just grid' -> showGrid grid'
-
---main :: IO ()
---main = do
---  inputs <- lines <$> getContents
---  Control.Monad.forM_ inputs $ \input ->
---    case readGrid input of
---      Nothing   -> putStrLn "Invalid input"
---      Just grid -> case solve grid of
---        Nothing    -> putStrLn "No solution found"
---        Just grid' -> putStrLn $ showGrid grid'

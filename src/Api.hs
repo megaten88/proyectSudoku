@@ -7,11 +7,12 @@ module Api(
 import           Data.ByteString.Lazy.Char8 (unpack)
 import           Data.List                  (elemIndex, transpose)
 import           Data.Maybe                 (fromMaybe)
-import           Network.HTTP.Client
-import           Network.HTTP.Client.TLS
-import           Text.HandsomeSoup
+import Network.HTTP.Client
+    ( httpLbs, newManager, parseRequest, Response(responseBody) )
+import Network.HTTP.Client.TLS ( tlsManagerSettings )
+import Text.HandsomeSoup ( (!), css, parseHtml )
 import           Text.Printf                (printf)
-import           Text.XML.HXT.Core
+import Text.XML.HXT.Core ( (>>>), runX )
 
 joinGroup :: [[b]] -> [b]
 joinGroup = concat
