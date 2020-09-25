@@ -64,26 +64,26 @@ defaultValue = '.'
 boardsize :: Int
 boardsize = 9
 
--- | The side-length of boxes in the sudokus.
+-- | Longitud lateral de las cajas (9 cajas).
 boxsize :: Int
 boxsize = 3
 
--- | The symbols which can be inserted into sudokus.
+-- | Simbolos que se pueden insertar.
 valuesCells :: [Char]
 valuesCells = "123456789"
 
--- | True iff from a given string a game can be created.
+-- | Verdadero si a partir de una cadena determinada se puede crear un juego.
 validate :: String -> Bool
 validate s = (length s == (boardsize * boardsize)) &&
           (all (`elem` defaultValue:valuesCells) s)
 
--- | Creates a game from a validate string.
+-- | Crea un juego a partir de una cadena.
 createString :: String -> Maybe BoardSudoku
 createString s
     | validate s   = Just $ BoardSudoku s
     | otherwise = Nothing
 
--- | Returns the string representation of a BoardSudoku.
+-- | retorna el string que representa BoardSudoku.
 toString :: BoardSudoku -> String
 toString (BoardSudoku s) = s
 
@@ -94,7 +94,7 @@ data BuilderCastException = UnknownIdException String deriving (Show, Typeable)
 
 instance Exception BuilderCastException
 
--- Cell Management
+-- administración de funcion cell
 type Cell = Button
 type Cells = [Cell]
 
@@ -103,7 +103,7 @@ newtype BoardSudoku = BoardSudoku String
 fromString :: [Char] -> String
 fromString [c] = [c]
 
-------------- BUILDING THE UI 
+------------- Construccion de interfaz grafica
 data BoardSudokuUI = BoardSudokuUI { window        :: Window
                          , cells         :: Cells
                          , popover       :: Popover
@@ -124,16 +124,15 @@ buildBoardSudokuUI = do
     checkButton       <- builderGetTyped builder "checkButton" Button
     pure $ BoardSudokuUI window cells popover numberButtons clearButton newButton checkButton
 
--- | The ids of the game cells in the ui file.
+-- | Los identificadores de las celdas del juego en el ui.
 cellNames :: [Textual.Text]
 cellNames = map (Textual.pack . (++) "cell") $ map show [1..81]
 
--- | The ids of the inputs for the numbers in the ui file.
+-- | Los identificadores de las entradas para los enteros en el ui
 numberNames :: [Textual.Text]
 numberNames = map (Textual.pack . (++) "number") $ map show [1..9]
 
--- | Takes a builder and returns the object with a given name
---   typed as a given gtype.
+-- | Toma un builder y devuelve el objeto con un nombre dado
 builderGetTyped :: (IsBuilder a, GObject o, MonadIO m) => a -> Textual.Text -> (ManagedPtr o -> o) -> m o
 builderGetTyped builder ident gtype =
     liftIO $ do
@@ -142,12 +141,11 @@ builderGetTyped builder ident gtype =
             Just a  -> unsafeCastTo gtype a
             Nothing -> throw $ UnknownIdException $ Textual.unpack ident
 
--- | Same as builderGetTyped for a list of names.
+-- | Al igual que builderGetTyped para una lista de nombres.
 builderGetsTyped :: (GObject a, IsBuilder b, MonadIO m) => b -> [Textual.Text] -> (ManagedPtr a -> a) -> m [a]
 builderGetsTyped b is t = sequence $ map (\i -> builderGetTyped b i t) is
 
--- | Builds the main application window from a xml definition file for which the
---   path is given.
+-- | Crea la ventana principal de la aplicación a partir de un archivo de xml para el que se define la ruta
 buildMainWindow :: MonadIO m => Textual.Text -> Textual.Text -> m (Window, Builder)
 buildMainWindow name path = liftIO $ do
     builder <- builderNewFromFile path
@@ -157,7 +155,7 @@ buildMainWindow name path = liftIO $ do
     windowAddCss window cssFile
     pure (window, builder)
 
--- | Adds to a given window a css file for which the path is given.
+-- | Agrega a una ventana determinada un archivo css para el que se define la ruta.
 windowAddCss :: (MonadIO m, IsWindow a) => a -> Textual.Text -> m ()
 windowAddCss window path = liftIO $ do
     screen <- windowGetScreen window
@@ -165,12 +163,12 @@ windowAddCss window path = liftIO $ do
     cssProviderLoadFromPath cssProvider path
     styleContextAddProviderForScreen screen cssProvider 1000
 
--- | Writes a character into a game cell.
+-- | Escribe un char en una celda de juego..
 writeCell :: Cell -> Char -> IO ()
 writeCell cell char = #setLabel cell (Textual.singleton char)
 
--- | Writes a charachter into a cell which is associated to a given popover
---   The popover gets closed afterwards.
+-- | Escribe un carácter en una celda que está asociada a un popover dado
+--   el popover se cierra después.
 writePopoverRelativeCell :: Popover -> Char -> IO ()
 writePopoverRelativeCell popover char = do
     widget <- #getRelativeTo popover
@@ -178,7 +176,7 @@ writePopoverRelativeCell popover char = do
     writeCell cell char
     #hide popover
 
--- | Binds the signal handlers to buttons.
+-- | Vincula los cells a los botones.
 cellsBindHandlers :: Cells -> Popover -> IO ()
 cellsBindHandlers cells popover = mapM_ (\c -> do
             on c #focusInEvent  $ focusInHandler c
@@ -190,8 +188,8 @@ charToString :: Char -> String
 charToString c = [c]
 
 
--- | Checks and returns if a given cell contains the correct value.
---   If the value is not correct the cell gets visually marked.
+-- | Comprueba y devuelve si una celda determinada contiene el valor correcto.
+--   Si el valor no es correcto, la celda se marca
 checkByCell :: Cell -> IO Bool
 checkByCell cell = do
     getSolution <- Textual.head <$> (toWidget cell >>= #getName)
@@ -206,8 +204,8 @@ checkByCell cell = do
     forkIO $ threadDelay 800000 >> #removeClass style "incorrect"
     pure isCorrect
 
--- | Checks if all given cells contain the correct value.
---   Visually marks the correct or incorrect cells.
+-- | Comprueba si todas las celdas dadas contienen el valor correcto.
+--   Marca visualmente las celdas correctas o incorrectas.
 checkBoard :: Cells -> IO ()
 checkBoard cells = do
     allAreCorrect <- and <$> mapM checkByCell cells
@@ -219,25 +217,26 @@ checkBoard cells = do
         ) cells
         else pure ()
 
--- | Associates the popover to a given button and shows the popover.
+-- | Asocia el popover a un botón dado y lo muestra.
 cellShowPopover :: Cell -> Popover -> IO ()
 cellShowPopover cell popover = do
     popover `set` [#relativeTo := cell]
     #show popover
 
--- | Binds the signal handlers to a list of number buttons.
+
+-- | Vincula los handlers a una lista de botones numéricos.
 numbersBindHandlers :: [Button] -> Popover -> IO ()
 numbersBindHandlers buttons popover = mapM_ (\b -> do
             on b #clicked $ numberButtonInsert b popover
         ) buttons
 
--- | Inserts the content of a number button to a cell associated to the popover.
+-- | Inserta el contenido de un botón en una celda asociada al popover.
 numberButtonInsert :: Button -> Popover -> IO ()
 numberButtonInsert button popover = do
     label <- #getLabel button
     writePopoverRelativeCell popover $ Textual.head label
 
--- | Writes a game into a list of buttons.
+-- | Escribe un juego en una lista de botones.
 writeSudoku :: Cells -> String -> IO ()
 writeSudoku cells game = do
     let sudokuChars = game
@@ -248,7 +247,7 @@ writeSudoku cells game = do
                 else c `set` [#sensitive := False]
         ) cells sudokuChars
 
--- | Stores a given solution in the names of the passed cells.
+-- | Almacena una solución dada en los nombres de las celdas pasadas
 writeSolution :: Cells -> String -> IO ()
 writeSolution cells game = do
     let sudokuChars = game
@@ -256,7 +255,7 @@ writeSolution cells game = do
             #setName c (Textual.singleton sc)
         ) cells sudokuChars
 
--- | Prepares a new game in the UI.
+-- | Prepara un nuevo juego en  la ui.
 newGame  :: Cells -> IO(String) ->  IO ()
 newGame cells gameString = do
     game <- gameString

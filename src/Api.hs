@@ -20,11 +20,11 @@ joinGroup = concat
 defaultValue :: Char
 defaultValue = '.'
 
--- Get random sudoku board
+-- | Obtener tablero de sudoku aleatorio
 dataurl :: Int ->  String
 dataurl value = "https://kjell.haxx.se/sudoku/?visade=" ++ (show $ value) ++ "&seed=%28random+seed%29&action=Create+a+field&hardchange=0"
 
---- Group a tail list by defined size
+--- | Agrupar una lista de cola por tamaño definido
 groupSize :: Int -> [x] ->[[x]]
 groupSize size [] = []
 groupSize size tail = (take size tail) : groupSize size (drop size tail)
@@ -39,7 +39,6 @@ getSudoku s b =  do
         response <- httpLbs request manager
         let htmlParse = parseHtml $ unpack $ responseBody response
         values <- runX $ htmlParse >>> css "input.sgrid" ! "value"
-        -- in the html the values are aranged block wise and not row wise
         let transposedValues = joinGroup . joinGroup . transpose . groupSize 3 . groupSize 9
                             . joinGroup . joinGroup . transpose . groupSize 3 . groupSize 3 $ values
         let sudokuString = concat $ map (\v -> if v == "" then defaultValue:"" else v) transposedValues
