@@ -6,13 +6,11 @@ import           Data.GI.Base
 import qualified GI.Gtk        as Gtk
 
 
--- | The main function which opens a new GTK window in which sudoku games can be
--- played.
+-- | Funcion principal abre una ventana  GTK  en la que se desarrolla el juego
 
 
 main :: IO ()
-main = do
-    --- For some reason if it is not called before init, it doesn't work         
+main = do        
         Gtk.init Nothing
         ui <-  buildBoardSudokuUI
         cellsBindHandlers (cells ui) (popover ui)
